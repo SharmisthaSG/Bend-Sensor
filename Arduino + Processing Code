@@ -1,0 +1,86 @@
+Arduino Code: 
+#include <SoftwareSerial.h> 
+
+SoftwareSerial myserial (0, 1);
+void setup() {
+  // put your setup code here, to run once:
+myserial.begin(9600);
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+#define POT_PIN    A0
+int  PotValue; 
+PotValue = analogRead (POT_PIN); /*----(Read the value and send it)----*/
+myserial.println (PotValue, DEC );
+
+delay(250);
+}
+
+Processing Code: 
+ import processing.serial.*;
+
+
+// Create Objects
+Serial myPort;        // The serial port
+
+// Define variables
+ int xPos = 1;         // horizontal position of the graph
+
+ void setup ()  // Runs Once
+ {
+ size(400, 300);  // set the window size:
+ 
+ println(Serial.list());  // List all the available serial ports
+/* Click RUN and See the com ports printed in the lower window
+   See which one is your Arduino COM port, (check your Tools>Port)
+   The first port shown below is 0, then 1,2 etc. enter the number in
+   Serial.list()[0]  where the zero is.
+*/
+ 
+ myPort = new Serial(this, Serial.list()[5], 115200);
+ 
+ // generate a serialEvent() when you get a newline character:
+ myPort.bufferUntil('\n');
+ 
+ background(0);   // set inital background: (0 is black)
+ }// END setup
+ 
+ void draw () //---( Runs in a loop, over and over )-------
+ {
+ // Does nothing in this example: everything happens in the serialEvent() 
+ }
+
+//-----( User written functions )---------------
+ void serialEvent (Serial myPort) 
+ {
+ // get the ASCII string:
+ String inString = myPort.readStringUntil('\n');
+
+ if (inString != null) 
+ {
+ // trim off any whitespace:
+ inString = trim(inString);
+ // convert to an int and map to the screen height:
+ float inByte = float(inString);
+ inByte = map(inByte, 0, 1023, 0, height);
+
+ // draw the line:
+ stroke(127,34,255);
+ line(xPos, height, xPos, height - inByte);
+
+ // at the edge of the screen, go back to the beginning:
+ if (xPos >= width) 
+ {
+ xPos = 0;
+ background(0);
+ }
+ else 
+ {
+ // increment the horizontal position:
+ xPos++;
+ }
+ 
+ }// END InString is not Null
+ 
+ }// END SerialEvent
